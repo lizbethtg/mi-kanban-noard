@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mi Kanban Board</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="logo">🌸 Mi Kanban</div>
+        <nav>
+            <div class="nav-item active">Tablero</div>
+            <div class="nav-item">📈 Estadísticas</div>
+            <div class="nav-item">⚙️ Configuración</div>
+        </nav>
+    </aside>
+
+    <!-- Corregido: class="main-content" con guión medio -->
+    <main class="main-content">
+        <header>
+            <h1>Mi Tablero</h1>
+            <button id="addTaskBtn">+ Nueva Tarea</button>
+        </header>
+
+        <div class="board">
+            <div class="column" id="pending" data-count="0">
+                <h2>Pendiente</h2>
+                <div class="task-list"></div>
+            </div>
+            <div class="column" id="progress" data-count="0">
+                <h2>En Progreso</h2>
+                <div class="task-list"></div>
+            </div>
+            <div class="column" id="done" data-count="0">
+                <h2>Hecho</h2>
+                <div class="task-list"></div>
+            </div>
+        </div> <!-- Cierre del board -->
+    </main> <!-- Cierre del main-content -->
+
+    <!-- Modal para agregar tarea -->
+    <div id="taskModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Nueva Tarea</h3>
+            <input type="text" id="taskInput" placeholder="Describe la tarea...">
+            <div class="modal-actions">
+                <button id="cancelBtn">Cancelar</button>
+                <button id="saveBtn">Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
