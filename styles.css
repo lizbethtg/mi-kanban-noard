@@ -264,6 +264,20 @@ h1 {
 .task-card:hover .delete-btn {
     opacity: 1;
 }
+
+/*?Input de Edición Inline*/
+.inline-edit-input{
+    width:100%;
+    border: none;
+    background: transparent;
+    font-size: 0.9rem;
+    color: var(--text-main);
+    outline: none;
+    padding: 0; 
+    margin: 0;
+    font-family: inherit;
+    border-bottom: 2px solid var(--primary);
+}
 /*?Stats & config views*/
 
 .stats-grid{
@@ -281,7 +295,21 @@ h1 {
     box-shadow: var(--shadow-soft);
     border: 1px solid var(--border-color);
 }
-
+.stats-card h3{
+    font-size:3rem;
+    margin-bottom: 0.5rem;
+}
+.stats-card p {
+    color: var(--text-muted); font-weight: 500;
+}
+.config-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 20px;
+    margin-top: 1rem;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-color);
+}
 .btn-danger{
     background: #fee2e2; color: #ef4444;
     border: none;
@@ -394,6 +422,6 @@ h1 {
     transform: translateX(-50%) translateY(0);
     opacity: 1;
 }
-
+.toast.show { transform: translateX(-50%) translateY(0); opacity: 1;}
 .toast.error { background: #ef4444; }
 .toast.success { background: var(--primary); }

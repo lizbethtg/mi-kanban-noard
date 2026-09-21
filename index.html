@@ -45,6 +45,13 @@
     <div id="statsView" class="view hidden">
         <h1>📈 Estadísticas</h1>
         <p style="color: var(--text-muted); margin-bottom: 2rem;">Resumen de tu productividad actual.</p>
+        <!--?Meses-->
+        <div style="margin-bottom: 2rem; display: flex; align-items: center; gap: 12px;">
+        <label for = "monthFilter" style= "font-weight: 600; color: var(--text-muted);">Filtrar por mes:</label>
+        <select id="monthFilter" style="padding: 8px 16px; border-radius: 12px; border: 2px solid var(--border-color); font-size: 0.95rem; outline:none; background: white;">
+            <option value="all">Todos los meses</option>
+        </select>
+        </div>
 
         <div class="stats-grid">
             <div class="stats-card">
@@ -56,7 +63,7 @@
                 <p>Pendientes</p>
             </div> 
             <div class="stats-card">
-                <h3 id="statProgress" style="color: #3b83f6;">0</h3>
+                <h3 id="statProgress" style="color: #3b82f6;">0</h3>
                 <p>En Progreso</p>
             </div>       
             <div class="stats-card">

@@ -1,4 +1,4 @@
-//?DOMS//
+//?Elementos del DOM
 const addTaskBtn = document.getElementById('addTaskBtn');
 const taskModal = document.getElementById('taskModal');
 const cancelBtn = document.getElementById('cancelBtn');
@@ -8,7 +8,7 @@ const prioritySelect = document.getElementById('prioritySelect');
 const columns = document.querySelectorAll('.column');
 const navItems = document.querySelectorAll('.nav-item');
 
-//?Toast & contadores
+//?Toast y contadores 
 
 function showToast(message, type = 'success') {
     const existing = document.querySelector('.toast');
@@ -31,10 +31,13 @@ function updateColumnCounts() {
         const count = col.querySelector('.task-list').children.length;
         col.setAttribute('data-count', count);
     });
-    updateStats(); // Actualizar stats automáticamente
+    // Actualizar stats automáticamente si estamos en esa vista
+    if (!document.getElementById('statsView').classList.contains('hidden')) {
+        updateStatsByMonth();
+    }
 }
 
-//?Navegaci+on entre vistas
+//?Navegación entre vistas
 
 function switchView(viewId) {
     // Ocultar todas las vistas
@@ -53,14 +56,60 @@ function switchView(viewId) {
     const header = document.getElementById('mainHeader');
     header.style.display = viewId === 'boardView' ? 'flex' : 'none';
 
-    if (viewId === 'statsView') updateStats();
+    // Si entramos a estadísticas, poblar y actualizar
+    if (viewId === 'statsView') {
+        populateMonthFilter();
+        updateStatsByMonth();
+    }
 }
 
 navItems.forEach(item => {
     item.addEventListener('click', () => switchView(item.dataset.view));
 });
 
-//?Tarea con prioridad
+//?Edición Inline 
+function enableInlineEdit(card) {
+    const textNode = Array.from(card.childNodes).find(
+        n => n.nodeType === Node.TEXT_NODE && n.textContent.trim() !== ''
+    );
+    if (!textNode) return;
+
+    const originalText = textNode.textContent.trim();
+    
+    const input = document.createElement('input');
+    input.type = 'text';
+    input.value = originalText;
+    input.className = 'inline-edit-input';
+
+    card.replaceChild(input, textNode);
+    input.focus();
+    input.select();
+
+    const saveEdit = () => {
+        // CORREGIDO: trim() con paréntesis
+        const newText = input.value.trim(); 
+        if (newText && newText !== originalText) {
+            textNode.textContent = newText;
+            card.replaceChild(textNode, input);
+            saveTasks();
+            showToast('✅ Tarea actualizada', 'success');
+        } else {
+            textNode.textContent = originalText;
+            card.replaceChild(textNode, input);
+        }
+    };
+
+    input.addEventListener('blur', saveEdit);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+        if (e.key === 'Escape') {
+            textNode.textContent = originalText;
+            card.replaceChild(textNode, input);
+        }
+    });
+}
+
+//?Tarea con prioridad y fecha
 
 function createTask() {
     const text = taskInput.value.trim();
@@ -74,6 +123,7 @@ function createTask() {
     const card = document.createElement('div');
     card.className = 'task-card';
     card.draggable = true;
+    card.dataset.createdAt = new Date().toISOString();
 
     // Badge de prioridad
     const badge = document.createElement('span');
@@ -97,6 +147,9 @@ function createTask() {
     card.appendChild(badge);
     card.appendChild(textNode);
     card.appendChild(deleteBtn);
+    
+    // Habilitar edición inline
+    card.addEventListener('dblclick', () => enableInlineEdit(card));
 
     document.querySelector('#pending .task-list').appendChild(card);
     
@@ -106,7 +159,7 @@ function createTask() {
     closeModal();
 }
 
-//?Modal Functions
+//?Funciones del modal
 function openModal() {
     taskModal.classList.remove('hidden');
     taskInput.value = '';
@@ -118,8 +171,7 @@ function closeModal() {
     taskModal.classList.add('hidden');
 }
 
-//?Drag & Drop
-
+//?Drag & Drop Nativo
 let draggedCard = null;
 
 document.addEventListener('dragstart', e => {
@@ -159,7 +211,8 @@ document.addEventListener('drop', e => {
     }
 });
 
-//?Local Storage
+//?Persistencia Local Storage
+
 function saveTasks() {
     const tasks = [];
     ['pending', 'progress', 'done'].forEach(id => {
@@ -168,9 +221,15 @@ function saveTasks() {
         col.querySelectorAll('.task-card').forEach(card => {
             const badge = card.querySelector('.priority-badge');
             const priority = badge ? badge.className.split(' ')[1].replace('p-', '') : 'medium';
-            // El texto está en el segundo nodo (después del badge)
-            const text = card.childNodes[1]?.textContent.trim() || '';
-            if (text) tasks.push({ text, priority, columnId: id });
+            
+            // Buscar nodo de texto correctamente
+            const textNode = Array.from(card.childNodes).find(
+                n => n.nodeType === Node.TEXT_NODE && n.textContent.trim() !== ''
+            );
+            const text = textNode ? textNode.textContent.trim() : '';
+            const createdAt = card.dataset.createdAt || new Date().toISOString();
+            
+            if (text) tasks.push({ text, priority, columnId: id, createdAt });
         });
     });
     localStorage.setItem('kanban-tasks', JSON.stringify(tasks));
@@ -189,6 +248,7 @@ function loadTasks() {
             const card = document.createElement('div');
             card.className = 'task-card';
             card.draggable = true;
+            card.dataset.createdAt = t.createdAt;
 
             const badge = document.createElement('span');
             badge.className = `priority-badge p-${t.priority || 'medium'}`;
@@ -199,48 +259,98 @@ function loadTasks() {
             const delBtn = document.createElement('button');
             delBtn.className = 'delete-btn';
             delBtn.innerHTML = '&times;';
-            delBtn.onclick = () => { card.remove(); saveTasks(); updateColumnCounts(); };
+            delBtn.onclick = () => { 
+                card.remove(); 
+                saveTasks(); 
+                updateColumnCounts(); 
+            };
 
             card.appendChild(badge);
             card.appendChild(textNode);
             card.appendChild(delBtn);
+            
+            // Habilitar edición inline al cargar
+            card.addEventListener('dblclick', () => enableInlineEdit(card));
+            
             list.appendChild(card);
         });
         updateColumnCounts();
     } catch (e) { console.error('Error cargando:', e); }
 }
 
-//?Estadísticas
-function updateStats() {
-    const total = document.querySelectorAll('.task-card').length;
-    const pending = document.querySelector('#pending .task-list')?.children.length || 0;
-    const progress = document.querySelector('#progress .task-list')?.children.length || 0;
-    const done = document.querySelector('#done .task-list')?.children.length || 0;
+//?Estadisticas por mes
 
-    const set = (id, val) => { const el = document.getElementById(id); if(el) el.textContent = val; };
-    set('statTotal', total);
-    set('statPending', pending);
-    set('statProgress', progress);
-    set('statDone', done);
+function populateMonthFilter() {
+    const saved = localStorage.getItem('kanban-tasks');
+    if (!saved) return;
+    
+    const tasks = JSON.parse(saved);
+    const months = [...new Set(tasks.map(t => t.createdAt.substring(0, 7)))].sort().reverse();
+    
+    const select = document.getElementById('monthFilter');
+    select.innerHTML = '<option value="all">Todos los meses</option>';
+    
+    months.forEach(m => {
+        const [year, month] = m.split('-');
+        const date = new Date(year, month - 1);
+        const label = date.toLocaleString('es-ES', { month: 'long', year: 'numeric' });
+        const option = document.createElement('option');
+        option.value = m;
+        option.textContent = label.charAt(0).toUpperCase() + label.slice(1);
+        select.appendChild(option);
+    });
 }
 
-//?Even listener 
+function updateStatsByMonth() {
+    
+    const selectedMonth = document.getElementById('monthFilter').value; 
+    const saved = localStorage.getItem('kanban-tasks');
+    if (!saved) return;
+    
+    let tasks = JSON.parse(saved);
+    
+    if (selectedMonth !== 'all') {
+        tasks = tasks.filter(t => t.createdAt.startsWith(selectedMonth));
+    }
+    
+
+    const total = tasks.length;
+    const pending = tasks.filter(t => t.columnId === 'pending').length;
+    const progress = tasks.filter(t => t.columnId === 'progress').length;
+    const done = tasks.filter(t => t.columnId === 'done').length;
+    
+    document.getElementById('statTotal').textContent = total;
+    document.getElementById('statPending').textContent = pending;
+    document.getElementById('statProgress').textContent = progress;
+    document.getElementById('statDone').textContent = done;
+}
+
+
+document.getElementById('monthFilter').addEventListener('change', updateStatsByMonth);
+
+//?Even Listener e inicialización
 addTaskBtn.addEventListener('click', openModal);
 cancelBtn.addEventListener('click', closeModal);
 saveBtn.addEventListener('click', createTask);
-taskInput.addEventListener('keypress', e => { if (e.key === 'Enter') createTask(); });
-taskModal.addEventListener('click', e => { if (e.target === taskModal) closeModal(); });
+
+taskInput.addEventListener('keypress', e => { 
+    if (e.key === 'Enter') createTask(); 
+});
+
+taskModal.addEventListener('click', e => { 
+    if (e.target === taskModal) closeModal(); 
+});
 
 document.getElementById('clearAllBtn').addEventListener('click', () => {
     if (confirm('¿Borrar TODAS las tareas? Esta acción no se puede deshacer.')) {
         localStorage.removeItem('kanban-tasks');
         document.querySelectorAll('.task-list').forEach(l => l.innerHTML = '');
         updateColumnCounts();
-        showToast('🗑️ Todo eliminado', 'error');
+        showToast('️ Todo eliminado', 'error');
         switchView('boardView');
     }
 });
 
-// Inicializar
+// Inicializar al cargar
 updateColumnCounts();
 loadTasks();
