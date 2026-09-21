@@ -5,24 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mi Kanban Board</title>
     <link rel="stylesheet" href="styles.css">
+     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"> <!--?Fuente-->
 </head>
 <body>
     <aside class="sidebar">
         <div class="logo">🌸 Mi Kanban</div>
         <nav>
-            <div class="nav-item active">Tablero</div>
-            <div class="nav-item">📈 Estadísticas</div>
-            <div class="nav-item">⚙️ Configuración</div>
+            <div class="nav-item active" data-view="boardView">Tablero</div>
+            <div class="nav-item" data-view="statsView">📈 Estadísticas</div>
+            <div class="nav-item"data-view="configView">⚙️ Configuración</div>
         </nav>
     </aside>
 
-    <!-- Corregido: class="main-content" con guión medio -->
-    <main class="main-content">
-        <header>
+    <main class="main-content"> <!--?Contenido principal-->
+
+        <header id="mainHeader">
             <h1>Mi Tablero</h1>
             <button id="addTaskBtn">+ Nueva Tarea</button>
         </header>
-
+        <!--?Tablero Kanban-->
+        <div id="boardView" class="view active">
         <div class="board">
             <div class="column" id="pending" data-count="0">
                 <h2>Pendiente</h2>
@@ -36,20 +38,69 @@
                 <h2>Hecho</h2>
                 <div class="task-list"></div>
             </div>
-        </div> <!-- Cierre del board -->
-    </main> <!-- Cierre del main-content -->
+        </div> <!--?Cierre del board -->
+    </div><!--?Cierre de boardView-->
 
-    <!-- Modal para agregar tarea -->
+    <!--?Estadísticas-->
+    <div id="statsView" class="view hidden">
+        <h1>📈 Estadísticas</h1>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Resumen de tu productividad actual.</p>
+
+        <div class="stats-grid">
+            <div class="stats-card">
+                <h3 id="statTotal">0</h3>
+                <p>Total de Tareas</p>
+            </div>
+            <div class="stats-card">
+                <h3 id="statPending" style="color: #f59e0b;">0</h3>
+                <p>Pendientes</p>
+            </div> 
+            <div class="stats-card">
+                <h3 id="statProgress" style="color: #3b83f6;">0</h3>
+                <p>En Progreso</p>
+            </div>       
+            <div class="stats-card">
+                <h3 id="statDone" style="color: #10b981;">0</h3>
+                <p>Completadas</p>
+            </div>  
+        </div> <!--?Cierre del stats-grid -->
+    </div><!--?Cierre de statsView-->
+
+    <!--?Configuración-->
+    <div id="configView" class="view hidden">
+        <h1>⚙️ Configuración</h1>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Gestiona tus datos y preferencias.</p>
+
+        <div class="config-section">
+                <h3>Zona de Peligro</h3>
+                <p style="margin:10px 0; color: #6b7280; font-size: 0.9rem;">Esta acción eliminará permanentemente todas tus tareas y no se podrán recuperar.</p>
+                <button id="clearAllBtn" class="btn-danger">Borrar todas las tareas</button>
+        </div> <!--?Cierre del config-section -->
+    </div><!--?Cierre de configView-->
+
+    </main> <!--?Cierre del main-content -->
+
+    <!--?Modal para agregar tarea -->
     <div id="taskModal" class="modal hidden">
         <div class="modal-content">
-            <h3>Nueva Tarea</h3>
-            <input type="text" id="taskInput" placeholder="Describe la tarea...">
+            <h3>Nueva Tarea ⚡</h3>
+            <input type="text" id="taskInput" placeholder="¿Qué necesitas hacer? 🖋️" autocomplete="off">
+            <!--?Selector de prioridad-->
+            <select id="prioritySelect">
+                <option value="low"> 💚Baja Prioridad</option>
+                <option value="medium">💛Media Prioridad</option>
+                <option value="high"> ❤️Alta Prioridad</option>
+            </select>
+
             <div class="modal-actions">
                 <button id="cancelBtn">Cancelar</button>
-                <button id="saveBtn">Guardar</button>
+                <button id="saveBtn">Guardar Tarea</button>
             </div>
         </div>
     </div>
+
+    <!--?Notificacición-->
+    <div id="toastContainer"></div>
 
     <script src="app.js"></script>
 </body>
